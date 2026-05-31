@@ -1,0 +1,27 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /httmdt
+
+spring:
+  datasource:
+    url: "jdbc:mysql://localhost:3306/tmdt"
+    username: root
+    password: 123456
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+app:
+  upload:
+    product-image-dir: "C:/ToyImage/Product"
+
+# MoMo Payment Gateway (Sandbox)
+momo:
+  partner-code: YOUR_PARTNER_CODE
+  access-key: YOUR_ACCESS_KEY
+  secret-key: YOUR_SECRET_KEY
+  endpoint: https://test-payment.momo.vn/v2/gateway/api/create
+  redirect-url: http://localhost:3000/payment/result
+  ipn-url: http://localhost:8080/httmdt/api/payments/momo/callback

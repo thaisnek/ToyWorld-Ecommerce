@@ -1,0 +1,8 @@
+# Backend
+BE/target/
+BE/.idea/
+
+# Frontend
+FE/node_modules/
+FE/dist/
+FE/.env
