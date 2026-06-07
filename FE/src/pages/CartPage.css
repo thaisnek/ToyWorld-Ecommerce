@@ -72,11 +72,31 @@
 
 .summary-rows { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
 .summary-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: var(--dark2); }
+.discount-row { color: var(--success); font-weight: 800; }
 .free-ship { color: var(--success); font-weight: 700; }
 .ship-notice { font-size: 11px; color: var(--warn); background: #fff4e0; border-radius: var(--radius-xs); padding: 6px 10px; font-weight: 600; }
 
-.voucher-row { display: flex; gap: 8px; margin-bottom: 16px; }
+.voucher-row { display: flex; gap: 8px; margin-bottom: 8px; }
 .voucher-row .form-input { flex: 1; padding: 8px 12px; font-size: 12px; text-transform: uppercase; }
+.voucher-row .btn { min-width: 82px; }
+
+.voucher-feedback {
+  border-radius: var(--radius-xs);
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  padding: 8px 10px;
+}
+
+.voucher-feedback.success {
+  background: #e8f9ea;
+  color: #166534;
+}
+
+.voucher-feedback.error {
+  background: #ffe8ec;
+  color: var(--danger);
+}
 
 .summary-total {
   display: flex; justify-content: space-between; align-items: center;
@@ -100,6 +120,8 @@
   .ci-price { display: none; }
   .ci-price-mobile { display: block; }
   .ci-check { align-self: flex-start; padding-top: 26px; }
+  .voucher-row { flex-direction: column; }
+  .voucher-row .btn { width: 100%; }
 }
 
 .ci-variant { font-size: 11px; color: var(--secondary-dark); font-weight: 700; margin-top: 2px; }

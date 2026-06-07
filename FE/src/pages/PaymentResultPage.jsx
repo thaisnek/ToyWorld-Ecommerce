@@ -3,11 +3,13 @@ import './CheckoutPage.css';
 
 export default function PaymentResultPage({ navigate }) {
   const [searchParams] = useSearchParams();
-  const resultCode = searchParams.get('resultCode');
+  const gateway = searchParams.get('gateway') || (searchParams.has('vnp_ResponseCode') ? 'VNPAY' : 'MOMO');
+  const resultCode = searchParams.get('resultCode') || searchParams.get('vnp_ResponseCode');
   const message = searchParams.get('message');
-  const orderId = searchParams.get('orderId');
+  const orderId = searchParams.get('orderId') || searchParams.get('vnp_TxnRef');
 
-  const isSuccess = resultCode === '0';
+  const isSuccess = resultCode === '0' || resultCode === '00';
+  const providerName = gateway === 'VNPAY' ? 'VNPay' : 'MoMo';
 
   return (
     <div className="checkout-page">
@@ -18,14 +20,14 @@ export default function PaymentResultPage({ navigate }) {
             {isSuccess ? 'Thanh toán thành công!' : 'Thanh toán thất bại'}
           </h2>
           <p style={{ color: 'var(--gray)', marginBottom: 24 }}>
-            {message ? decodeURIComponent(message) : (isSuccess ? 'Cảm ơn bạn đã mua hàng tại ToyWorld.' : 'Đã có lỗi xảy ra trong quá trình thanh toán MoMo.')}
+            {message ? decodeURIComponent(message) : (isSuccess ? `Cảm ơn bạn đã thanh toán qua ${providerName}.` : `Đã có lỗi xảy ra trong quá trình thanh toán ${providerName}.`)}
           </p>
           {orderId && (
             <div className="order-id" style={{ fontSize: 18, background: 'var(--light)', display: 'inline-block', padding: '8px 16px', borderRadius: 8 }}>
               Mã giao dịch / Đơn hàng: <strong>{orderId}</strong>
             </div>
           )}
-          
+
           <div className="success-actions" style={{ marginTop: 32, display: 'flex', gap: 16, justifyContent: 'center' }}>
             <button className="btn btn-primary btn-lg" onClick={() => navigate('orders')}>📦 Xem đơn hàng</button>
             <button className="btn btn-outline btn-lg" onClick={() => navigate('home')}>🏠 Về trang chủ</button>

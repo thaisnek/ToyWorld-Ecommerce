@@ -2,6 +2,7 @@ package com.example.webtmdt.service;
 
 import com.example.webtmdt.dto.request.TypeVoucherRequest;
 import com.example.webtmdt.dto.request.VoucherRequest;
+import com.example.webtmdt.dto.response.ApplyVoucherResponse;
 import com.example.webtmdt.dto.response.TypeVoucherResponse;
 import com.example.webtmdt.dto.response.VoucherResponse;
 import org.springframework.data.domain.Page;
@@ -22,6 +23,9 @@ public interface VoucherService {
     Page<VoucherResponse> getAllVouchers(Pageable pageable);
 
     void deleteVoucher(Long id);
+
+    // ===== Customer =====
+    ApplyVoucherResponse applyVoucher(String voucherCode, BigDecimal subtotal, String username);
 
     // ===== Internal =====
 

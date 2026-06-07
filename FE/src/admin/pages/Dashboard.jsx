@@ -42,13 +42,69 @@ function ProductSalesTable({ title, icon, products }) {
 export default function Dashboard({ showToast }) {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [salesLoading, setSalesLoading] = useState(false);
+  const [salesDateFilters, setSalesDateFilters] = useState({
+    fromDate: '',
+    toDate: '',
+  });
 
-  useEffect(() => {
-    adminApi.getStats()
+  const loadStats = (params = {}, initialLoad = false) => {
+    if (initialLoad) {
+      setLoading(true);
+    } else {
+      setSalesLoading(true);
+    }
+
+    return adminApi.getStats(params)
       .then(setStats)
       .catch(() => showToast('Không tải được dữ liệu', 'error'))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (initialLoad) {
+          setLoading(false);
+        } else {
+          setSalesLoading(false);
+        }
+      });
+  };
+
+  useEffect(() => {
+    loadStats({}, true);
   }, []);
+
+  const handleSalesDateChange = (event) => {
+    const { name, value } = event.target;
+    setSalesDateFilters((filters) => ({
+      ...filters,
+      [name]: value,
+    }));
+  };
+
+  const salesDateParams = () => {
+    const params = {};
+    if (salesDateFilters.fromDate) params.fromDate = salesDateFilters.fromDate;
+    if (salesDateFilters.toDate) params.toDate = salesDateFilters.toDate;
+    return params;
+  };
+
+  const handleSalesFilterSubmit = (event) => {
+    event.preventDefault();
+
+    if (
+      salesDateFilters.fromDate &&
+      salesDateFilters.toDate &&
+      salesDateFilters.fromDate > salesDateFilters.toDate
+    ) {
+      showToast('Ngày bắt đầu không được lớn hơn ngày kết thúc', 'error');
+      return;
+    }
+
+    loadStats(salesDateParams());
+  };
+
+  const handleClearSalesFilter = () => {
+    setSalesDateFilters({ fromDate: '', toDate: '' });
+    loadStats();
+  };
 
   if (loading) return <div className="loading">⏳ Đang tải dashboard...</div>;
   if (!stats) return null;
@@ -83,7 +139,42 @@ export default function Dashboard({ showToast }) {
         </div>
       )}
 
-      <div className="dashboard-sales-grid">
+      <form className="card dashboard-sales-filter" onSubmit={handleSalesFilterSubmit}>
+        <div className="dashboard-sales-filter-title">
+          <span>🗓️</span>
+          <strong>Lọc sản phẩm theo thời gian</strong>
+        </div>
+        <div className="dashboard-sales-filter-controls">
+          <label className="date-filter-field">
+            <span>Từ ngày</span>
+            <input
+              className="form-input"
+              type="date"
+              name="fromDate"
+              value={salesDateFilters.fromDate}
+              onChange={handleSalesDateChange}
+            />
+          </label>
+          <label className="date-filter-field">
+            <span>Đến ngày</span>
+            <input
+              className="form-input"
+              type="date"
+              name="toDate"
+              value={salesDateFilters.toDate}
+              onChange={handleSalesDateChange}
+            />
+          </label>
+          <button className="btn btn-primary" type="submit" disabled={salesLoading}>
+            🔎 {salesLoading ? 'Đang lọc' : 'Lọc'}
+          </button>
+          <button className="btn btn-outline" type="button" onClick={handleClearSalesFilter} disabled={salesLoading}>
+            Xóa
+          </button>
+        </div>
+      </form>
+
+      <div className={`dashboard-sales-grid${salesLoading ? ' is-loading' : ''}`}>
         <ProductSalesTable
           title="5 sản phẩm bán chạy nhất"
           icon="🔥"

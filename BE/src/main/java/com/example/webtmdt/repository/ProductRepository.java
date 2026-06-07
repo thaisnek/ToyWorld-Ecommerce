@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 
@@ -71,7 +72,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                 p.id,
                 p.name,
                 c.name,
-                COALESCE(SUM(CASE WHEN o.orderStatus IN :soldStatuses THEN oi.quantity ELSE 0 END), 0)
+                COALESCE(SUM(CASE
+                    WHEN o.orderStatus IN :soldStatuses
+                     AND (:fromDate IS NULL OR o.createdAt >= :fromDate)
+                     AND (:toDate IS NULL OR o.createdAt < :toDate)
+                    THEN oi.quantity ELSE 0
+                END), 0)
             )
             FROM Product p
             LEFT JOIN p.category c
@@ -80,11 +86,18 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             LEFT JOIN oi.order o
             WHERE p.status = :status
             GROUP BY p.id, p.name, c.name
-            ORDER BY COALESCE(SUM(CASE WHEN o.orderStatus IN :soldStatuses THEN oi.quantity ELSE 0 END), 0) DESC, p.id ASC
+            ORDER BY COALESCE(SUM(CASE
+                WHEN o.orderStatus IN :soldStatuses
+                 AND (:fromDate IS NULL OR o.createdAt >= :fromDate)
+                 AND (:toDate IS NULL OR o.createdAt < :toDate)
+                THEN oi.quantity ELSE 0
+            END), 0) DESC, p.id ASC
             """)
     List<ProductSalesStatResponse> findTopSellingProducts(
             @Param("status") String status,
             @Param("soldStatuses") Collection<OrderStatus> soldStatuses,
+            @Param("fromDate") LocalDateTime fromDate,
+            @Param("toDate") LocalDateTime toDate,
             Pageable pageable);
 
     @Query("""
@@ -92,7 +105,12 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                 p.id,
                 p.name,
                 c.name,
-                COALESCE(SUM(CASE WHEN o.orderStatus IN :soldStatuses THEN oi.quantity ELSE 0 END), 0)
+                COALESCE(SUM(CASE
+                    WHEN o.orderStatus IN :soldStatuses
+                     AND (:fromDate IS NULL OR o.createdAt >= :fromDate)
+                     AND (:toDate IS NULL OR o.createdAt < :toDate)
+                    THEN oi.quantity ELSE 0
+                END), 0)
             )
             FROM Product p
             LEFT JOIN p.category c
@@ -101,10 +119,17 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             LEFT JOIN oi.order o
             WHERE p.status = :status
             GROUP BY p.id, p.name, c.name
-            ORDER BY COALESCE(SUM(CASE WHEN o.orderStatus IN :soldStatuses THEN oi.quantity ELSE 0 END), 0) ASC, p.id ASC
+            ORDER BY COALESCE(SUM(CASE
+                WHEN o.orderStatus IN :soldStatuses
+                 AND (:fromDate IS NULL OR o.createdAt >= :fromDate)
+                 AND (:toDate IS NULL OR o.createdAt < :toDate)
+                THEN oi.quantity ELSE 0
+            END), 0) ASC, p.id ASC
             """)
     List<ProductSalesStatResponse> findLowSellingProducts(
             @Param("status") String status,
             @Param("soldStatuses") Collection<OrderStatus> soldStatuses,
+            @Param("fromDate") LocalDateTime fromDate,
+            @Param("toDate") LocalDateTime toDate,
             Pageable pageable);
 }

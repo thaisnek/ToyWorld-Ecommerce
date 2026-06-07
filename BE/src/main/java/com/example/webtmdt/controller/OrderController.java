@@ -6,6 +6,7 @@ import com.example.webtmdt.dto.response.ApiResponse;
 import com.example.webtmdt.dto.response.OrderResponse;
 import com.example.webtmdt.enums.OrderStatus;
 import com.example.webtmdt.service.OrderService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,8 +32,12 @@ public class OrderController {
     @PreAuthorize("hasRole('CUSTOMER')")
     public ResponseEntity<ApiResponse<OrderResponse>> createOrder(
             @AuthenticationPrincipal UserDetails userDetails,
-            @Valid @RequestBody CreateOrderRequest request) {
-        OrderResponse order = orderService.createOrder(userDetails.getUsername(), request);
+            @Valid @RequestBody CreateOrderRequest request,
+            HttpServletRequest httpRequest) {
+        OrderResponse order = orderService.createOrder(
+                userDetails.getUsername(),
+                request,
+                resolveClientIp(httpRequest));
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Tạo đơn hàng thành công!", order));
     }
@@ -104,5 +109,19 @@ public class OrderController {
             @Valid @RequestBody UpdateOrderStatusRequest request) {
         OrderResponse order = orderService.updateOrderStatus(userDetails.getUsername(), id, request);
         return ResponseEntity.ok(ApiResponse.success("Cập nhật trạng thái đơn hàng thành công!", order));
+    }
+
+    private String resolveClientIp(HttpServletRequest request) {
+        String forwardedFor = request.getHeader("X-Forwarded-For");
+        if (forwardedFor != null && !forwardedFor.isBlank()) {
+            return forwardedFor.split(",")[0].trim();
+        }
+
+        String realIp = request.getHeader("X-Real-IP");
+        if (realIp != null && !realIp.isBlank()) {
+            return realIp.trim();
+        }
+
+        return request.getRemoteAddr();
     }
 }

@@ -54,7 +54,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public OrderResponse createOrder(String username, CreateOrderRequest request) {
+    public OrderResponse createOrder(String username, CreateOrderRequest request, String clientIp) {
         User user = findUserOrThrow(username);
 
         // 1. Lấy địa chỉ giao hàng
@@ -168,9 +168,11 @@ public class OrderServiceImpl implements OrderService {
         shipmentRepository.save(shipment);
 
         // 9. Nếu MoMo → tạo payment link
-        String momoPayUrl = null;
+        String paymentUrl = null;
         if (request.getPaymentMethod() == PaymentMethod.MOMO) {
-            momoPayUrl = paymentService.createMomoPayment(order);
+            paymentUrl = paymentService.createMomoPayment(order);
+        } else if (request.getPaymentMethod() == PaymentMethod.VNPAY) {
+            paymentUrl = paymentService.createVnpayPayment(order, clientIp);
         }
 
         // 10. Dọn dẹp giỏ hàng (Xóa những sản phẩm đã đặt khỏi giỏ)
@@ -182,7 +184,8 @@ public class OrderServiceImpl implements OrderService {
         });
 
         OrderResponse response = toOrderResponse(order);
-        response.setMomoPayUrl(momoPayUrl);
+        response.setMomoPayUrl(paymentUrl);
+        response.setPaymentUrl(paymentUrl);
         return response;
     }
 

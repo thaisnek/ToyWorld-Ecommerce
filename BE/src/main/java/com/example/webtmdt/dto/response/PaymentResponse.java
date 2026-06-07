@@ -22,5 +22,6 @@ public class PaymentResponse {
     private LocalDateTime paidAt;
     private String failureReason;
     private String momoPayUrl;
+    private String paymentUrl;
     private LocalDateTime createdAt;
 }

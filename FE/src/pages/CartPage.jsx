@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
-import { formatPrice } from "../services/api";
+import { formatPrice, voucherApi } from "../services/api";
 import { isImageSource } from "../utils/imageUtils";
 import "./CartPage.css";
 
@@ -12,6 +12,9 @@ export default function CartPage({ navigate }) {
   const { user } = useAuth();
   const [selectedItemKeys, setSelectedItemKeys] = useState([]);
   const [voucherCode, setVoucherCode] = useState("");
+  const [appliedVoucher, setAppliedVoucher] = useState(null);
+  const [voucherError, setVoucherError] = useState("");
+  const [applyingVoucher, setApplyingVoucher] = useState(false);
   const selectionInitializedRef = useRef(false);
   useEffect(() => {
     const cartKeys = cart.map(getItemKey);
@@ -38,8 +41,17 @@ export default function CartPage({ navigate }) {
 
   const selectedSubtotal = selectedItems.reduce((sum, item) => sum + (item.unitPrice || 0) * (item.quantity || 0), 0);
   const shippingFee = 0;
-  const totalAmount = selectedSubtotal + shippingFee;
+  const discountAmount = appliedVoucher ? Number(appliedVoucher.discountAmount || 0) : 0;
+  const totalAmount = Math.max(0, selectedSubtotal - discountAmount) + shippingFee;
   const allSelected = cart.length > 0 && selectedItems.length === cart.length;
+
+  useEffect(() => {
+    if (!appliedVoucher) return;
+    if (Number(appliedVoucher.subtotal || 0) !== selectedSubtotal) {
+      setAppliedVoucher(null);
+      setVoucherError("Giỏ hàng đã thay đổi, vui lòng áp dụng lại mã giảm giá.");
+    }
+  }, [selectedSubtotal, appliedVoucher]);
   const renderItemVisual = (item) => {
     const visual = getEmoji?.(item) || item.imageUrl || "🧸";
     return isImageSource(visual)
@@ -69,10 +81,57 @@ export default function CartPage({ navigate }) {
       return;
     }
 
+    const normalizedVoucherCode = voucherCode.trim().toUpperCase();
+    if (normalizedVoucherCode && (!appliedVoucher || appliedVoucher.codeVoucher !== normalizedVoucherCode)) {
+      alert("Vui lòng bấm Áp dụng để kiểm tra mã giảm giá trước khi thanh toán.");
+      return;
+    }
+
     navigate("checkout", {
       selectedCartItemIds: selectedItems.map(getItemKey),
-      voucherCode: voucherCode.trim().toUpperCase() || undefined,
+      voucherCode: appliedVoucher?.codeVoucher || undefined,
     });
+  };
+
+  const handleVoucherChange = (event) => {
+    setVoucherCode(event.target.value.toUpperCase());
+    setAppliedVoucher(null);
+    setVoucherError("");
+  };
+
+  const handleApplyVoucher = async () => {
+    const normalizedVoucherCode = voucherCode.trim().toUpperCase();
+
+    if (!user) {
+      setVoucherError("Bạn cần đăng nhập để áp dụng mã giảm giá.");
+      return;
+    }
+
+    if (!selectedItems.length) {
+      setVoucherError("Vui lòng chọn sản phẩm trước khi áp dụng mã giảm giá.");
+      return;
+    }
+
+    if (!normalizedVoucherCode) {
+      setVoucherError("Vui lòng nhập mã giảm giá.");
+      return;
+    }
+
+    setApplyingVoucher(true);
+    setVoucherError("");
+    setAppliedVoucher(null);
+    try {
+      const result = await voucherApi.apply({
+        voucherCode: normalizedVoucherCode,
+        subtotal: selectedSubtotal,
+      });
+      setVoucherCode(result.codeVoucher || normalizedVoucherCode);
+      setAppliedVoucher(result);
+    } catch (error) {
+      setVoucherError(error.message || "Không áp dụng được mã giảm giá.");
+    } finally {
+      setApplyingVoucher(false);
+    }
   };
 
   if (cart.length === 0) {
@@ -155,6 +214,12 @@ export default function CartPage({ navigate }) {
                   {shippingFee === 0 ? "Miễn phí" : formatPrice(shippingFee)}
                 </span>
               </div>
+              {appliedVoucher && (
+                <div className="summary-row discount-row">
+                  <span>Giảm giá ({appliedVoucher.codeVoucher})</span>
+                  <span>-{formatPrice(discountAmount)}</span>
+                </div>
+              )}
               {shippingFee > 0 && (
                 <div className="ship-notice">
                   Mua thêm <strong>{formatPrice(300000 - selectedSubtotal)}</strong> để được miễn phí vận chuyển
@@ -167,9 +232,18 @@ export default function CartPage({ navigate }) {
                 className="form-input"
                 placeholder="Mã voucher / giảm giá"
                 value={voucherCode}
-                onChange={e => setVoucherCode(e.target.value.toUpperCase())}
+                onChange={handleVoucherChange}
               />
+              <button className="btn btn-outline btn-sm" type="button" onClick={handleApplyVoucher} disabled={applyingVoucher || !voucherCode.trim()}>
+                {applyingVoucher ? "Đang kiểm tra" : "Áp dụng"}
+              </button>
             </div>
+            {appliedVoucher && (
+              <div className="voucher-feedback success">
+                Mã hợp lệ, giảm {formatPrice(discountAmount)}.
+              </div>
+            )}
+            {voucherError && <div className="voucher-feedback error">{voucherError}</div>}
 
             <div className="summary-total">
               <span>Tổng cộng</span>

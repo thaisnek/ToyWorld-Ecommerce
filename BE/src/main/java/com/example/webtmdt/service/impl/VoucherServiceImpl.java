@@ -1,16 +1,19 @@
 package com.example.webtmdt.service.impl;
 
+import com.example.webtmdt.dto.response.ApplyVoucherResponse;
 import com.example.webtmdt.dto.request.TypeVoucherRequest;
 import com.example.webtmdt.dto.request.VoucherRequest;
 import com.example.webtmdt.dto.response.TypeVoucherResponse;
 import com.example.webtmdt.dto.response.VoucherResponse;
 import com.example.webtmdt.entity.TypeVoucher;
+import com.example.webtmdt.entity.User;
 import com.example.webtmdt.entity.Voucher;
 import com.example.webtmdt.enums.VoucherType;
 import com.example.webtmdt.exception.AppException;
 import com.example.webtmdt.exception.ResourceNotFoundException;
 import com.example.webtmdt.mapper.VoucherMapper;
 import com.example.webtmdt.repository.TypeVoucherRepository;
+import com.example.webtmdt.repository.UserRepository;
 import com.example.webtmdt.repository.VoucherRepository;
 import com.example.webtmdt.repository.VoucherUsedRepository;
 import com.example.webtmdt.service.VoucherService;
@@ -33,6 +36,7 @@ public class VoucherServiceImpl implements VoucherService {
     private final VoucherRepository voucherRepository;
     private final TypeVoucherRepository typeVoucherRepository;
     private final VoucherUsedRepository voucherUsedRepository;
+    private final UserRepository userRepository;
     private final VoucherMapper voucherMapper;
 
     // ==================== ADMIN ====================
@@ -94,6 +98,32 @@ public class VoucherServiceImpl implements VoucherService {
             throw new AppException(HttpStatus.BAD_REQUEST, "Khong the xoa voucher da duoc su dung");
         }
         voucherRepository.delete(voucher);
+    }
+
+    // ==================== CUSTOMER ====================
+
+    @Override
+    @Transactional(readOnly = true)
+    public ApplyVoucherResponse applyVoucher(String voucherCode, BigDecimal subtotal, String username) {
+        User user = userRepository.findByUserName(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Nguoi dung", "username", username));
+
+        Voucher voucher = voucherRepository.findByCodeVoucher(voucherCode.toUpperCase())
+                .orElseThrow(() -> new AppException(HttpStatus.BAD_REQUEST, "Ma voucher khong hop le!"));
+
+        BigDecimal discount = calculateDiscount(voucherCode, subtotal, user.getId());
+        TypeVoucher type = voucher.getTypeVoucher();
+
+        return ApplyVoucherResponse.builder()
+                .codeVoucher(voucher.getCodeVoucher())
+                .typeVoucher(type.getTypeVoucher().name())
+                .value(type.getValue())
+                .minValue(type.getMinValue())
+                .maxValue(type.getMaxValue())
+                .subtotal(subtotal)
+                .discountAmount(discount)
+                .totalAfterDiscount(subtotal.subtract(discount))
+                .build();
     }
 
     // ==================== INTERNAL ====================

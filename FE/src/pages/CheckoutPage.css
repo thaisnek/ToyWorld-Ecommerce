@@ -87,6 +87,25 @@
 .voucher-box h4 { margin-bottom: 12px; color: var(--dark); font-size: 15px; font-weight: 800; }
 .voucher-input-row { display: flex; gap: 8px; }
 .voucher-input-row .form-input { flex: 1; text-transform: uppercase; }
+.voucher-input-row .btn { min-width: 96px; }
+
+.voucher-feedback {
+  border-radius: var(--radius-xs);
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 10px;
+  padding: 8px 10px;
+}
+
+.voucher-feedback.success {
+  background: #e8f9ea;
+  color: #166534;
+}
+
+.voucher-feedback.error {
+  background: #ffe8ec;
+  color: var(--danger);
+}
 
 .bank-info {
   background: var(--light); border-radius: var(--radius-sm);
@@ -127,6 +146,7 @@
 .co-empty { font-size: 13px; color: var(--gray); background: var(--light); border-radius: var(--radius-sm); padding: 12px; text-align: center; }
 .co-totals { display: flex; flex-direction: column; gap: 8px; }
 .co-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--dark2); }
+.discount-row { color: var(--success); font-weight: 800; }
 .co-total { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 2px dashed var(--border); margin-top: 4px; font-weight: 800; font-size: 15px; }
 
 /* Success */
@@ -152,4 +172,5 @@
   .csi-img { width: 46px; height: 46px; font-size: 24px; }
   .csi-meta { grid-column: 3; align-items: flex-start; }
   .voucher-input-row { flex-direction: column; }
+  .voucher-input-row .btn { width: 100%; }
 }

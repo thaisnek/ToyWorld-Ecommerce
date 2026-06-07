@@ -226,10 +226,57 @@
   margin-bottom: 20px;
 }
 
+.admin-layout-wrapper .dashboard-sales-filter {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px 18px;
+}
+
+.admin-layout-wrapper .dashboard-sales-filter-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 38px;
+  color: var(--admin-text);
+  font-size: 15px;
+}
+
+.admin-layout-wrapper .dashboard-sales-filter-controls {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin-layout-wrapper .date-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 160px;
+}
+
+.admin-layout-wrapper .date-filter-field span {
+  color: var(--admin-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-layout-wrapper .date-filter-field .form-input {
+  width: 160px;
+}
+
 .admin-layout-wrapper .dashboard-sales-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
+}
+
+.admin-layout-wrapper .dashboard-sales-grid.is-loading {
+  opacity: 0.58;
+  pointer-events: none;
 }
 
 .admin-layout-wrapper .dashboard-sales-card {
@@ -396,6 +443,11 @@
   text-decoration: none;
   white-space: nowrap;
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.admin-layout-wrapper .btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
 }
 
 .admin-layout-wrapper .btn-primary {
@@ -709,6 +761,16 @@
   .admin-layout-wrapper .dashboard-sales-grid {
     grid-template-columns: 1fr;
   }
+
+  .admin-layout-wrapper .dashboard-sales-filter {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .admin-layout-wrapper .dashboard-sales-filter-controls {
+    justify-content: flex-start;
+    width: 100%;
+  }
 }
 
 @media (max-width: 760px) {
@@ -744,5 +806,19 @@
 
   .admin-layout-wrapper .search-input {
     min-width: 100%;
+  }
+
+  .admin-layout-wrapper .dashboard-sales-filter-controls {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-layout-wrapper .date-filter-field {
+    min-width: 0;
+  }
+
+  .admin-layout-wrapper .date-filter-field .form-input,
+  .admin-layout-wrapper .dashboard-sales-filter-controls .btn {
+    width: 100%;
   }
 }

@@ -10,5 +10,6 @@ public interface PaymentMapper {
 
     @Mapping(source = "order.id", target = "orderId")
     @Mapping(target = "momoPayUrl", ignore = true)
+    @Mapping(target = "paymentUrl", ignore = true)
     PaymentResponse toResponse(Payment payment);
 }

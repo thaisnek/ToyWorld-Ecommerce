@@ -402,6 +402,10 @@ export const orderApi = {
 };
 
 // ── Payments ──────────────────────────────────────────────────
+export const paymentApi = {
+  retry: (orderId) => request(`/payments/order/${orderId}/retry`, { method: 'POST' }),
+};
+
 export const shipmentApi = {
   getAll: (params) => getShipmentsPage('/admin/shipments', params || {}),
   getMyAssignments: (params) => getShipmentsPage('/shipments/my-assignments', params || {}),
@@ -425,6 +429,14 @@ export const reviewApi = {
   create: (body) => request('/reviews', { method: 'POST', body: JSON.stringify(body) }),
 };
 
+// ── Vouchers ──────────────────────────────────────────────────
+export const voucherApi = {
+  apply: (body) => request('/vouchers/apply', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  }),
+};
+
 // ── User / Profile ────────────────────────────────────────────
 export const userApi = {
   getProfile:     ()     => request('/auth/me'), // Updated endpoint based on backend AuthController
@@ -444,10 +456,16 @@ export const loyaltyApi = {
 };
 
 // ── Admin ─────────────────────────────────────────────────────
+const productSalesStatsParams = (params = {}) => (
+  typeof params === 'number'
+    ? { limit: params }
+    : { limit: 5, ...params }
+);
+
 export const adminApi = {
-  getStats: async () => {
+  getStats: async (params = {}) => {
     try {
-      return await request('/admin/stats');
+      return await request(withQuery('/admin/stats', params));
     } catch {
       const [ordersResult, productsResult, usersResult] = await Promise.allSettled([
         getOrdersPage('/admin/orders', { size: 100 }),
@@ -473,8 +491,14 @@ export const adminApi = {
     }
   },
 
-  getTopSellingProducts: (limit = 5) => request(withQuery('/admin/stats/products/top-selling', { limit })),
-  getLowSellingProducts: (limit = 5) => request(withQuery('/admin/stats/products/low-selling', { limit })),
+  getTopSellingProducts: (params = {}) => request(withQuery(
+    '/admin/stats/products/top-selling',
+    productSalesStatsParams(params),
+  )),
+  getLowSellingProducts: (params = {}) => request(withQuery(
+    '/admin/stats/products/low-selling',
+    productSalesStatsParams(params),
+  )),
 
   // Orders
   getOrders:       (p) => getOrdersPage('/admin/orders', p || {}),

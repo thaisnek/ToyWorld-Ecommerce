@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { orderApi, reviewApi, formatPrice } from '../services/api';
+import { orderApi, paymentApi, reviewApi, formatPrice } from '../services/api';
 import { isImageSource } from '../utils/imageUtils';
 import './OrderHistoryPage.css';
 
@@ -67,7 +67,7 @@ const ORDER_STATUS = {
   CANCELLED: { label: 'Đã hủy',       color: 'danger',    icon: '❌' },
 };
 
-const PAY_LABEL = { COD:'💵 Tiền mặt khi nhận', MOMO:'💜 Ví MoMo' };
+const PAY_LABEL = { COD:'💵 Tiền mặt khi nhận', MOMO:'💜 Ví MoMo', VNPAY:'💳 VNPay' };
 const PAY_STATUS = {
   PENDING: { label: '⏳ Chờ thanh toán', color: 'var(--warn)' },
   PAID: { label: '✅ Đã thanh toán', color: 'var(--success)' },
@@ -84,6 +84,13 @@ const SHIPMENT_STEPS = (order) => [
   { label:'Đã giao',   done: ['DELIVERED','COMPLETED'].includes(order.shipment?.shipmentStatus || order.orderStatus),                      icon:'🎉' },
 ];
 
+const getPaymentMethod = (order) => order.payment?.paymentMethod || order.paymentMethod;
+const getPaymentStatus = (order) => order.payment?.paymentStatus || order.paymentStatus;
+const canRetryOnlinePayment = (order) =>
+  ['MOMO', 'VNPAY'].includes(getPaymentMethod(order))
+  && getPaymentStatus(order) === 'PENDING'
+  && ['PENDING', 'CONFIRMED'].includes(order.orderStatus);
+
 export default function OrderHistoryPage({ navigate }) {
   const { user } = useAuth();
   const [orders, setOrders]       = useState([]);
@@ -91,6 +98,7 @@ export default function OrderHistoryPage({ navigate }) {
   const [filter, setFilter]       = useState('all');
   const [expandedId, setExpandedId] = useState(null);
   const [reviewingOrder, setReviewingOrder] = useState(null);
+  const [payingOrderId, setPayingOrderId] = useState(null);
 
   useEffect(() => {
     if (!user) return;
@@ -107,6 +115,21 @@ export default function OrderHistoryPage({ navigate }) {
       await orderApi.cancel(orderId, 'Khách hàng hủy');
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, orderStatus: 'CANCELLED' } : o));
     } catch (err) { alert(err.message); }
+  };
+
+  const handleRetryPayment = async (orderId) => {
+    setPayingOrderId(orderId);
+    try {
+      const payment = await paymentApi.retry(orderId);
+      const paymentUrl = payment.paymentUrl || payment.momoPayUrl;
+      if (!paymentUrl) {
+        throw new Error('Khong tao duoc link thanh toan.');
+      }
+      window.location.href = paymentUrl;
+    } catch (err) {
+      alert(err.message || 'Khong the thanh toan lai don hang nay.');
+      setPayingOrderId(null);
+    }
   };
 
   const handleComplete = async (orderId) => {
@@ -259,6 +282,11 @@ export default function OrderHistoryPage({ navigate }) {
                         )}
                         {order.orderStatus === 'DELIVERED' && (
                           <button className="btn btn-primary btn-sm" onClick={() => handleComplete(order.id)}>🎉 Đã nhận được hàng</button>
+                        )}
+                        {canRetryOnlinePayment(order) && (
+                          <button className="btn btn-primary btn-sm" onClick={() => handleRetryPayment(order.id)} disabled={payingOrderId === order.id}>
+                            {payingOrderId === order.id ? 'Đang chuyển...' : '💳 Thanh toán lại'}
+                          </button>
                         )}
                         {['PENDING', 'CONFIRMED'].includes(order.orderStatus) && (
                           <button className="btn btn-light btn-sm" style={{ color:'var(--danger)' }} onClick={() => handleCancel(order.id)}>❌ Hủy đơn</button>

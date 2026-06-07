@@ -1,8 +1,10 @@
 package com.example.webtmdt.controller;
 
+import com.example.webtmdt.dto.request.ApplyVoucherRequest;
 import com.example.webtmdt.dto.request.TypeVoucherRequest;
 import com.example.webtmdt.dto.request.VoucherRequest;
 import com.example.webtmdt.dto.response.ApiResponse;
+import com.example.webtmdt.dto.response.ApplyVoucherResponse;
 import com.example.webtmdt.dto.response.TypeVoucherResponse;
 import com.example.webtmdt.dto.response.VoucherResponse;
 import com.example.webtmdt.service.VoucherService;
@@ -15,6 +17,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,6 +34,18 @@ import java.util.List;
 public class VoucherController {
 
     private final VoucherService voucherService;
+
+    @PostMapping("/api/vouchers/apply")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public ResponseEntity<ApiResponse<ApplyVoucherResponse>> applyVoucher(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody ApplyVoucherRequest request) {
+        ApplyVoucherResponse result = voucherService.applyVoucher(
+                request.getVoucherCode(),
+                request.getSubtotal(),
+                userDetails.getUsername());
+        return ResponseEntity.ok(ApiResponse.success("Ap dung voucher thanh cong!", result));
+    }
 
     @PostMapping("/api/admin/vouchers/types")
     @PreAuthorize("hasRole('ADMIN')")

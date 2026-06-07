@@ -10,7 +10,7 @@ import org.springframework.data.domain.Pageable;
 public interface OrderService {
 
     // ===== Customer =====
-    OrderResponse createOrder(String username, CreateOrderRequest request);
+    OrderResponse createOrder(String username, CreateOrderRequest request, String clientIp);
 
     Page<OrderResponse> getMyOrders(String username, Pageable pageable);
 

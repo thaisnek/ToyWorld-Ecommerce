@@ -38,6 +38,7 @@ public class OrderResponse {
 
     /** Chỉ có khi paymentMethod = MOMO và chưa thanh toán */
     private String momoPayUrl;
+    private String paymentUrl;
 
     private List<OrderItemResponse> items;
 

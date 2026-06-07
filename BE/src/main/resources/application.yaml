@@ -25,3 +25,11 @@ momo:
   endpoint: https://test-payment.momo.vn/v2/gateway/api/create
   redirect-url: http://localhost:3000/payment/result
   ipn-url: http://localhost:8080/httmdt/api/payments/momo/callback
+
+# VNPay Payment Gateway (Sandbox)
+vnpay:
+  tmn-code: F4X70FHN
+  hash-secret: X6D8VG0ISNY90B6DSX08BKT70FNFZBC2
+  pay-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+  return-url: http://localhost:8080/httmdt/api/payments/vnpay/return
+  frontend-result-url: http://127.0.0.1:5173/payment/result

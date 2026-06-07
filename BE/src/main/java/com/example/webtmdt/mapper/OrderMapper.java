@@ -15,13 +15,15 @@ public interface OrderMapper {
     @Mapping(source = "customer.id", target = "customerId")
     @Mapping(source = "customer.fullName", target = "customerName")
     @Mapping(source = "voucher.codeVoucher", target = "voucherCode")
-    @Mapping(target = "items", ignore = true)       // map thủ công vì cần imageUrl
-    @Mapping(target = "momoPayUrl", ignore = true)   // set thủ công
+    @Mapping(target = "items", ignore = true)
+    @Mapping(target = "paymentMethod", ignore = true)
+    @Mapping(target = "momoPayUrl", ignore = true)
+    @Mapping(target = "paymentUrl", ignore = true)
     OrderResponse toResponse(Order order);
 
     @Mapping(source = "variant.id", target = "variantId")
     @Mapping(source = "variant.product.id", target = "productId")
-    @Mapping(target = "imageUrl", ignore = true)     // tra cứu DB
+    @Mapping(target = "imageUrl", ignore = true)
     OrderItemResponse toItemResponse(OrderItem orderItem);
 
     List<OrderItemResponse> toItemResponseList(List<OrderItem> items);

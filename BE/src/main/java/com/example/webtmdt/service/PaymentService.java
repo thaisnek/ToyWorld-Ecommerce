@@ -3,17 +3,23 @@ package com.example.webtmdt.service;
 import com.example.webtmdt.dto.response.PaymentResponse;
 import com.example.webtmdt.entity.Order;
 
+import java.util.Map;
+
 public interface PaymentService {
 
-    /** Tạo MoMo payment link, trả về payUrl */
     String createMomoPayment(Order order);
 
-    /** Xử lý MoMo IPN callback */
-    void handleMomoCallback(java.util.Map<String, String> params);
+    void handleMomoCallback(Map<String, String> params);
 
-    /** Admin xác nhận COD đã nhận tiền */
+    String createVnpayPayment(Order order, String clientIp);
+
+    String handleVnpayReturn(Map<String, String> params);
+
+    Map<String, String> handleVnpayIpn(Map<String, String> params);
+
+    PaymentResponse retryOnlinePayment(Long orderId, String username, String clientIp);
+
     PaymentResponse confirmCodPayment(Long orderId);
 
-    /** Lấy thông tin payment theo orderId (kiểm tra quyền truy cập) */
     PaymentResponse getPaymentByOrderId(Long orderId, String username);
 }
